@@ -33,14 +33,24 @@ export const CataloguePage = () => {
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("");
 
-  // TODO : écrire le useQuery ici
+  const { data: movies, isLoading, isError } = useQuery<Movie[]>({
+    queryKey: ["movies", search, genre],
+    queryFn: () => api.get<Movie[]>(`/movies?search=${search}&genre=${genre}`),
+  });
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Catalogue</h1>
       <SearchBar onSearch={setSearch} onGenreChange={setGenre} />
 
-      {/* TODO : afficher loading, error, et la liste de films */}
+      {isLoading && <p>Chargement...</p>}
+      {isError && <p>Erreur lors du chargement.</p>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {movies?.map((movie) => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
+      </div>
     </div>
   );
 };
