@@ -37,5 +37,37 @@ import type { Movie } from "../types/movie";
 //
 
 export const MovieDetailPage = () => {
-  return <div>TODO : compléter cette page</div>;
+  const { id } = useParams();
+
+  const { data: movie, isLoading, isError } = useQuery<Movie>({
+    queryKey: ["movie", id],
+    queryFn: () => api.get<Movie>(`/movies/${id}`),
+  });
+
+  const queryClient = useQueryClient();
+
+  const toggleWatched = useMutation({
+    mutationFn: () => api.post<Movie>(`/movies/${id}/toggle-watched`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["movie", id] });
+    },
+  });
+
+  if (isLoading) return <p>Chargement...</p>;
+  if (isError || !movie) return <p>Erreur lors du chargement.</p>;
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <img src={movie.imageUrl} alt={movie.title} className="w-full h-64 object-cover rounded-lg" />
+      <h1 className="text-3xl font-bold mt-4">{movie.title}</h1>
+      <p className="text-gray-600 mt-1">{movie.director} · {movie.year} · {movie.genre}</p>
+      <p className="text-gray-700 mt-4">{movie.description}</p>
+      <button
+        onClick={() => toggleWatched.mutate()}
+        className={`mt-4 px-4 py-2 rounded-lg text-white ${movie.watched ? "bg-gray-500" : "bg-green-600"}`}
+      >
+        {movie.watched ? "Vu" : "Pas vu"}
+      </button>
+    </div>
+  );
 };
